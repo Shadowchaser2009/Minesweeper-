@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Minesweeper</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Minesweeper">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#181b22" id="tc">
+<link rel="manifest" id="mf">
+<link rel="apple-touch-icon" id="ai">
+<style>
+:root{--bg:#eef0f4;--sf:#fff;--tx:#1b1e24;--mu:#667085;--ch:#c9d0dc;--cr:#f8f9fb;--ln:rgba(0,0,0,.09);--ac:#3d6bff;--dg:#e5484d;--bar:#181b22;--bt:#f1f3f7;
+--n1:#1565c0;--n2:#2e7d32;--n3:#d32f2f;--n4:#4527a0;--n5:#bf360c;--n6:#00838f;--n7:#212121;--n8:#6b6b6b;
+box-sizing:border-box;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#13151a;--sf:#1e222a;--tx:#e8eaee;--mu:#8d96a5;--ch:#3b4250;--cr:#1f232b;--ln:rgba(255,255,255,.08);--ac:#5a7bff;--dg:#ff6369;--bar:#0c0e12;
+--n1:#64b5f6;--n2:#81c784;--n3:#ef7676;--n4:#b39ddb;--n5:#ffab66;--n6:#4dd0e1;--n7:#e0e0e0;--n8:#a0a0a0}}
+:root[data-theme="dark"]{--bg:#13151a;--sf:#1e222a;--tx:#e8eaee;--mu:#8d96a5;--ch:#3b4250;--cr:#1f232b;--ln:rgba(255,255,255,.08);--ac:#5a7bff;--dg:#ff6369;--bar:#0c0e12;
+--n1:#64b5f6;--n2:#81c784;--n3:#ef7676;--n4:#b39ddb;--n5:#ffab66;--n6:#4dd0e1;--n7:#e0e0e0;--n8:#a0a0a0}
+[hidden]{display:none!important}
+*{-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+html{background:var(--bar)}
+body{background:var(--bg);color:var(--tx);display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif}
+button{font-family:inherit;-webkit-appearance:none;appearance:none;cursor:pointer}
+header,footer{background:var(--bar);color:var(--bt);padding:10px 12px 12px;flex:none}
+header{display:flex;flex-direction:column;gap:10px}
+.lv,.seg{display:flex;gap:4px;background:rgba(255,255,255,.09);padding:3px;border-radius:13px}
+.lv button,.seg button{flex:1;border:0;background:none;color:inherit;opacity:.72;border-radius:10px;font-weight:700;transition:background .2s,opacity .2s}
+.lv button{padding:9px 4px;font-size:13px}
+.on{background:var(--ac)!important;color:#fff!important;opacity:1!important}
+.st{display:flex;align-items:center;justify-content:space-between}
+.lcd{font:700 26px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.06em;color:#ff5a5f;background:#07080a;padding:3px 10px;border-radius:9px;min-width:74px;text-align:center;font-variant-numeric:tabular-nums}
+#face{width:50px;height:50px;border:0;border-radius:15px;background:rgba(255,255,255,.1);font-size:27px;line-height:1;transition:transform .15s}
+#face:active{transform:scale(.88)}
+#ban{display:none;align-items:center;gap:8px;margin:8px 8px 0;padding:8px 8px 8px 12px;background:var(--sf);border:1px solid var(--ln);border-radius:12px;font-size:13px;line-height:1.35;color:var(--mu);flex:none}
+#ban.on{display:flex;animation:slide .35s ease-out}
+#ban span{flex:1}
+#ban svg{vertical-align:-2px}
+#ban button{border:0;background:none;color:var(--tx);font-size:18px;padding:4px 8px}
+#ban #inst{font-size:13px;font-weight:700;border-radius:8px;padding:7px 12px}
+#bw{flex:1;min-height:0;overflow:auto;display:flex;padding:6px;overscroll-behavior:contain}
+#board{display:grid;grid-template-columns:repeat(var(--cols),var(--cs));gap:2px;margin:auto;flex:none}
+.c{width:var(--cs);height:var(--cs);border-radius:calc(var(--cs)*.2);background:var(--ch);box-shadow:inset 0 -2px 0 rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.3);display:grid;place-items:center;font-size:calc(var(--cs)*.58);font-weight:800;line-height:1;color:var(--tx)}
+.c svg{width:64%;height:64%}
+.c.r{background:var(--cr);box-shadow:none;animation:pop .24s ease-out both}
+.c.f svg{animation:drop .22s ease-out}
+.c.m{color:var(--tx)}
+.c.hit{background:var(--dg);color:#fff}
+.c.x{color:var(--dg)}
+.c:not(.r):active{filter:brightness(.9)}
+@media (hover:hover){.c:not(.r):hover{filter:brightness(1.07)}}
+.n1{color:var(--n1)}.n2{color:var(--n2)}.n3{color:var(--n3)}.n4{color:var(--n4)}.n5{color:var(--n5)}.n6{color:var(--n6)}.n7{color:var(--n7)}.n8{color:var(--n8)}
+.seg{width:100%;max-width:420px;margin:0 auto;padding:4px}
+.seg button{padding:14px 8px;font-size:16px}
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.5);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9;animation:fade .2s}
+.card{background:var(--sf);border-radius:22px;padding:24px 20px 14px;width:100%;max-width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);animation:card .32s cubic-bezier(.2,1.3,.4,1)}
+.big{font-size:48px;line-height:1.1}
+h2{margin:6px 0 2px;font-size:22px}
+.card p{margin:0 0 16px;color:var(--mu);font-size:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px}
+.g3>div{background:var(--bg);border-radius:12px;padding:10px 4px}
+.g3 b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.g3 span{font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:.06em}
+.pri{width:100%;border:0;background:var(--ac);color:#fff;font-weight:700;font-size:16px;padding:14px;border-radius:14px}
+.ghost{width:100%;border:0;background:none;color:var(--mu);font-size:14px;padding:12px;margin-top:2px}
+@keyframes pop{from{transform:scale(.65);opacity:.3}}
+@keyframes drop{from{transform:translateY(-45%) scale(.5);opacity:0}}
+@keyframes fade{from{opacity:0}}
+@keyframes card{from{transform:scale(.8) translateY(14px);opacity:0}}
+@keyframes slide{from{transform:translateY(-8px);opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+:root{--ch:#c6cfde;--cr:#eef1f6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ch:#3e4658;--cr:#14171c}}
+:root[data-theme="dark"]{--ch:#3e4658;--cr:#14171c}
+header{padding:8px 12px 10px;gap:12px}
+.lv{background:rgba(255,255,255,.07);border-radius:12px}
+.lv button{font-size:13px;padding:8px 4px;font-weight:600}
+.stat{display:flex;align-items:center;gap:8px;min-width:88px;font:600 24px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.stat:last-child{justify-content:flex-end}
+.stat svg{width:20px;height:20px;opacity:.6}
+.stat b{font-weight:600}
+#face{width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.14);font-size:28px}
+#bw{padding:8px 6px}
+#board{padding:5px;background:var(--sf);border:1px solid var(--ln);border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.05),0 10px 30px rgba(0,0,0,.07);transition:box-shadow .25s}
+body[data-mode="flag"] #board{box-shadow:0 0 0 2px var(--ac),0 10px 30px rgba(0,0,0,.07)}
+.c{border-radius:calc(var(--cs)*.26);box-shadow:inset 0 -2px 0 rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .08s}
+.c.r{box-shadow:none}
+.c:not(.r):active{transform:scale(.86);filter:none}
+footer{display:flex;gap:10px;align-items:center;justify-content:center;padding:10px 12px 12px}
+.seg{position:relative;flex:1;width:auto;max-width:420px;margin:0;padding:4px;gap:0;background:rgba(255,255,255,.08);border-radius:18px}
+.seg::before{content:"";position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:14px;background:var(--ac);box-shadow:0 2px 10px rgba(0,0,0,.3);transition:transform .28s cubic-bezier(.3,1.2,.5,1)}
+.seg[data-mode="flag"]::before{transform:translateX(100%)}
+.seg button{position:relative;z-index:1;padding:15px 8px;font-size:16px;border-radius:14px}
+.seg button.on{background:none!important}
+#zm{flex:none;width:56px;height:56px;border:0;border-radius:18px;background:rgba(255,255,255,.09);color:inherit;font-size:22px;transition:background .2s}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000;--sf:#090a0d;--bar:#000;--ch:#2a2f3a;--cr:#000;--ln:rgba(255,255,255,.11)}}
+:root[data-theme="dark"]{--bg:#000;--sf:#090a0d;--bar:#000;--ch:#2a2f3a;--cr:#000;--ln:rgba(255,255,255,.11)}
+#ov{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(0,0,0,.62)}
+.card,.g3>div{border:1px solid var(--ln)}
+.top{display:flex;gap:8px}
+.top .lv{flex:1}
+#th{flex:none;width:42px;border:0;border-radius:12px;background:rgba(255,255,255,.08);color:inherit;font-size:17px}
+header{padding:6px 12px 8px;gap:8px}
+.lv button{padding:7px 4px}
+#face{width:48px;height:48px;font-size:25px}
+.stat{font-size:22px}
+footer{padding:8px 12px 10px}
+.seg button{padding:12px 8px}
+#zm{width:auto;min-width:52px;height:48px;padding:0 12px;font-size:16px;font-weight:700;border-radius:16px}
+#bw{padding:6px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="flag" viewBox="0 0 24 24"><path d="M6 21V3M3 21h10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M6 4l13 5.5L6 15z" fill="#e5484d"/></symbol>
+<symbol id="mine" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="6.5" fill="currentColor"/><circle cx="10" cy="10" r="1.8" fill="#fff" opacity=".8"/></symbol>
+<symbol id="clk" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 9v4.5l3 1.5M9.5 2.5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+</defs></svg>
+<header>
+  <div class="top"><div class="lv">
+    <button data-l="b" class="on">Beginner</button>
+    <button data-l="i">Intermediate</button>
+    <button data-l="e">Expert</button>
+  </div><button id="th" aria-label="Theme">◐</button></div>
+  <div class="st">
+    <div class="stat" title="Mines left"><svg><use href="#mine"/></svg><b id="mc">010</b></div>
+    <button id="face" aria-label="Restart game">🙂</button>
+    <div class="stat" title="Time"><svg><use href="#clk"/></svg><b id="tm">000</b></div>
+  </div>
+</header>
+<div id="ban"><span id="bt"></span><button id="inst" class="on" hidden>Install</button><button id="x" aria-label="Dismiss">✕</button></div>
+<main id="bw"><div id="board" aria-label="Minesweeper board"></div></main>
+<footer>
+  <div class="seg" data-mode="reveal">
+    <button data-m="reveal" class="on" aria-pressed="true">⛏️ Reveal</button>
+    <button data-m="flag" aria-pressed="false">🚩 Flag</button>
+  </div>
+  <button id="zm" hidden aria-label="Zoom in or out">🔍</button>
+</footer>
+<div id="ov" hidden>
+  <div class="card" role="dialog" aria-modal="true">
+    <div class="big" id="mi"></div>
+    <h2 id="mt"></h2>
+    <p id="ms"></p>
+    <div class="g3">
+      <div><b id="s1"></b><span>Time</span></div>
+      <div><b id="s2"></b><span>Cleared</span></div>
+      <div><b id="s3"></b><span>Best</span></div>
+    </div>
+    <button class="pri" id="again">Play again</button>
+    <button class="ghost" id="close">View board</button>
+  </div>
+</div>
+<script>
+const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
+const bw=$('#bw'),board=$('#board'),ov=$('#ov');
+const LV={b:{r:9,c:9,m:10,n:'Beginner'},i:{r:16,c:16,m:40,n:'Intermediate'},e:{r:16,c:30,m:99,n:'Expert'}};
+const FLAG='<svg><use href="#flag"/></svg>',MINE='<svg><use href="#mine"/></svg>';
+let lv='b',mode='reveal',G,tmr,pt,lastPT,dp;
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const vib=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
+
+/* ---------- PWA: theme colour, dynamic icons, inline manifest ---------- */
+const theme=()=>{$('#tc').content=getComputedStyle(document.documentElement).getPropertyValue('--bar').trim()};
+const mq=matchMedia('(prefers-color-scheme: dark)');
+mq.addEventListener&&mq.addEventListener('change',theme);theme();
+function icon(s){
+  const c=document.createElement('canvas');c.width=c.height=s;const x=c.getContext('2d'),m=s/2;
+  x.fillStyle='#181b22';x.fillRect(0,0,s,s);
+  x.strokeStyle=x.fillStyle='#eef0f4';x.lineWidth=s*.05;x.lineCap='round';
+  for(let a=0;a<4;a++){const t=a*Math.PI/4,d=s*.31;x.beginPath();x.moveTo(m+Math.cos(t)*d,m+Math.sin(t)*d);x.lineTo(m-Math.cos(t)*d,m-Math.sin(t)*d);x.stroke()}
+  x.beginPath();x.arc(m,m,s*.2,0,7);x.fill();
+  x.fillStyle='rgba(24,27,34,.45)';x.beginPath();x.arc(m-s*.07,m-s*.07,s*.05,0,7);x.fill();
+  x.fillStyle='#e5484d';x.beginPath();x.arc(m+s*.27,m-s*.27,s*.07,0,7);x.fill();
+  return c.toDataURL('image/png');
+}
+try{
+  const bar=getComputedStyle(document.documentElement).getPropertyValue('--bar').trim();
+  const mf={name:'Minesweeper',short_name:'Mines',start_url:location.href.split('#')[0],display:'standalone',orientation:'portrait',background_color:bar,theme_color:bar,
+    icons:[{src:icon(192),sizes:'192x192',type:'image/png'},{src:icon(512),sizes:'512x512',type:'image/png',purpose:'any maskable'}]};
+  $('#mf').href='data:application/manifest+json,'+encodeURIComponent(JSON.stringify(mf));
+  $('#ai').href=icon(180);
+}catch(e){}
+
+/* ---------- Add-to-Home-Screen banner ---------- */
+const sa=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const showBan=()=>{if(!store.get('ms-ban'))$('#ban').classList.add('on')};
+if(!sa){
+  const ua=navigator.userAgent,ios=/iP(hone|ad|od)/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  if(ios){$('#bt').innerHTML='Play full-screen: tap <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4M5 12v8h14v-8"/></svg> Share, then “Add to Home Screen”.';showBan()}
+  else if(/Android/.test(ua)){$('#bt').textContent='Play full-screen: open the ⋮ menu, then “Add to Home screen” or “Install app”.';showBan()}
+}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('#bt').textContent='Install Minesweeper for full-screen, app-like play.';$('#inst').hidden=false;showBan()});
+$('#inst').onclick=()=>{dp&&dp.prompt();$('#ban').classList.remove('on')};
+$('#x').onclick=()=>{$('#ban').classList.remove('on');store.set('ms-ban',1)};
+
+/* ---------- Game logic ---------- */
+const nb=i=>{const x=i%G.c,y=(i/G.c)|0,o=[];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;const a=x+dx,b=y+dy;if(a>=0&&b>=0&&a<G.c&&b<G.r)o.push(b*G.c+a)}return o};
+
+function newGame(){
+  clearInterval(tmr);ov.hidden=true;
+  const L=LV[lv],N=L.r*L.c;
+  G={r:L.r,c:L.c,m:L.m,N,mine:Array(N).fill(0),adj:[],st:Array(N).fill(0),el:[],started:false,over:false,flags:0,rev:0,t0:0,t:0};
+  board.textContent='';board.style.setProperty('--cols',G.c);
+  const f=document.createDocumentFragment();
+  for(let i=0;i<N;i++){const e=document.createElement('div');e.className='c';e.dataset.i=i;G.el.push(e);f.appendChild(e)}
+  board.appendChild(f);bw.scrollTo(0,0);
+  $('#face').textContent='🙂';$('#zm').hidden=lv==='b';zoom=lv==='b'?0:(+store.get('ms-z-'+lv)||0);zlab();tick();upd();fit();
+}
+let zoom=0,T=false;
+const ZF=[1,1.7,2.4];
+const zlab=()=>{const z=$('#zm');z.textContent=zoom?'🔍 '+ZF[zoom]+'×':'🔍';z.classList.toggle('on',zoom>0)};
+function setZoom(z){
+  const o=parseFloat(board.style.getPropertyValue('--cs'))||1,cx=bw.scrollLeft+bw.clientWidth/2,cy=bw.scrollTop+bw.clientHeight/2;
+  zoom=z;store.set('ms-z-'+lv,z);zlab();fit();
+  const k=(parseFloat(board.style.getPropertyValue('--cs'))||1)/o;
+  bw.scrollLeft=cx*k-bw.clientWidth/2;bw.scrollTop=cy*k-bw.clientHeight/2;
+}
+function fit(){
+  const g=2,w=bw.clientWidth-24,h=bw.clientHeight-28;
+  const t=lv==='e'&&bw.clientHeight>bw.clientWidth;
+  if(t!==T||!G.laid){
+    T=t;G.laid=1;
+    G.el.forEach((e,i)=>{if(T){e.style.gridRow=(i%G.c)+1;e.style.gridColumn=((i/G.c)|0)+1}else{e.style.gridRow=e.style.gridColumn=''}});
+  }
+  const c=T?G.r:G.c,r=T?G.c:G.r;
+  board.style.setProperty('--cols',c);
+  let cs=Math.floor(Math.min((w-g*(c-1))/c,(h-g*(r-1))/r,48));
+  if(zoom)cs=Math.min(56,Math.round(cs*ZF[zoom]));
+  board.style.setProperty('--cs',Math.max(cs,16)+'px');
+}
+function tick(){
+  G.t=G.started?Math.min(999,Math.floor((Date.now()-G.t0)/1000)):0;
+  $('#tm').textContent=String(G.t).padStart(3,'0');
+}
+function upd(){
+  const v=G.m-G.flags;
+  $('#mc').textContent=(v<0?'-':'')+String(Math.abs(v)).padStart(v<0?2:3,'0');
+}
+function place(f){
+  const safe=new Set([f,...nb(f)]),p=[];
+  for(let i=0;i<G.N;i++)if(!safe.has(i))p.push(i);
+  for(let k=0;k<G.m;k++){const j=k+Math.floor(Math.random()*(p.length-k));[p[k],p[j]]=[p[j],p[k]];G.mine[p[k]]=1}
+  for(let i=0;i<G.N;i++)G.adj[i]=nb(i).reduce((a,j)=>a+G.mine[j],0);
+}
+function draw(k){
+  const e=G.el[k],s=G.st[k];
+  if(s===1){e.className='c r'+(G.adj[k]?' n'+G.adj[k]:'');e.textContent=G.adj[k]||''}
+  else if(s===2){e.className='c f';e.innerHTML=FLAG}
+  else{e.className='c';e.innerHTML=''}
+}
+function reveal(i){
+  if(G.over||G.st[i])return;
+  if(!G.started){G.started=true;place(i);G.t0=Date.now();tmr=setInterval(tick,500)}
+  if(G.mine[i])return lose(i);
+  const stack=[i];
+  while(stack.length){
+    const k=stack.pop();if(G.st[k])continue;
+    G.st[k]=1;G.rev++;draw(k);
+    if(!G.adj[k])for(const j of nb(k))if(!G.st[j])stack.push(j);
+  }
+  vib(8);
+  if(G.rev===G.N-G.m)win();
+}
+function flag(i){
+  if(G.over||G.st[i]===1)return;
+  if(G.st[i]===2){G.st[i]=0;G.flags--}else{G.st[i]=2;G.flags++}
+  draw(i);upd();vib(15);
+}
+function chord(i){
+  if(G.over||!G.adj[i])return;
+  const n=nb(i);
+  if(n.filter(j=>G.st[j]===2).length!==G.adj[i]){vib(5);return}
+  n.forEach(j=>{if(G.st[j]===0)reveal(j)});
+}
+function act(i,alt){
+  if(G.over)return;
+  if(G.st[i]===1)return chord(i);
+  if((mode==='flag')!==alt)flag(i);else if(G.st[i]!==2)reveal(i);
+}
+function lose(i){
+  G.over=true;clearInterval(tmr);tick();
+  for(let k=0;k<G.N;k++){
+    const e=G.el[k];
+    if(G.mine[k]&&G.st[k]!==2){e.className='c r m'+(k===i?' hit':'');e.innerHTML=MINE;if(k!==i)e.style.animationDelay=Math.random()*450+'ms'}
+    else if(!G.mine[k]&&G.st[k]===2){e.className='c r x';e.textContent='✕'}
+  }
+  $('#face').textContent='😵';vib([60,40,140]);
+  setTimeout(()=>modal(false),850);
+}
+function win(){
+  G.over=true;clearInterval(tmr);tick();
+  for(let k=0;k<G.N;k++)if(G.mine[k]&&G.st[k]!==2){G.st[k]=2;draw(k)}
+  G.flags=G.m;upd();$('#face').textContent='😎';vib([30,50,30,50,90]);
+  setTimeout(()=>modal(true),650);
+}
+function modal(w){
+  let b=+store.get('ms-best-'+lv)||0,fresh=false;
+  if(w&&(!b||G.t<b)){fresh=!!b||true;b=G.t;store.set('ms-best-'+lv,b)}
+  $('#mi').textContent=w?'🎉':'💥';
+  $('#mt').textContent=w?'You cleared the field!':'Boom!';
+  $('#ms').textContent=LV[lv].n+' · '+(w?(fresh?'new best time!':'all mines found'):'you hit a mine');
+  $('#s1').textContent=G.t+'s';
+  $('#s2').textContent=Math.round(G.rev/(G.N-G.m)*100)+'%';
+  $('#s3').textContent=b?b+'s':'–';
+  ov.hidden=false;
+}
+
+/* ---------- Input: tap, long-press, right-click ---------- */
+const cancelPt=()=>{if(pt){clearTimeout(pt.timer);pt=null}};
+board.addEventListener('pointerdown',e=>{
+  lastPT=e.pointerType;
+  if(e.button>0)return;
+  const el=e.target.closest('.c');if(!el)return;
+  const p=pt={i:+el.dataset.i,x:e.clientX,y:e.clientY,long:false};
+  p.timer=setTimeout(()=>{if(pt===p){p.long=true;vib(25);act(p.i,true)}},380);
+});
+board.addEventListener('pointermove',e=>{if(pt&&Math.hypot(e.clientX-pt.x,e.clientY-pt.y)>10)cancelPt()});
+board.addEventListener('pointerup',e=>{
+  if(!pt)return;const p=pt;clearTimeout(p.timer);pt=null;
+  if(!p.long)act(p.i,false);
+});
+board.addEventListener('pointercancel',cancelPt);
+board.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')cancelPt()});
+board.addEventListener('contextmenu',e=>{
+  e.preventDefault();
+  const el=e.target.closest('.c');
+  if(el&&lastPT==='mouse')act(+el.dataset.i,true);
+});
+document.addEventListener('gesturestart',e=>e.preventDefault());
+
+/* ---------- UI wiring ---------- */
+$$('.lv button').forEach(b=>b.onclick=()=>{
+  lv=b.dataset.l;$$('.lv button').forEach(x=>x.classList.toggle('on',x===b));vib(8);newGame();
+});
+$$('.seg button[data-m]').forEach(b=>b.onclick=()=>{
+  mode=b.dataset.m;$('.seg').dataset.mode=mode;document.body.dataset.mode=mode;$$('.seg button[data-m]').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',x===b)});vib(8);
+});
+$('#face').onclick=newGame;
+$('#again').onclick=newGame;
+$('#close').onclick=()=>{ov.hidden=true};
+$('#zm').onclick=()=>setZoom((zoom+1)%3);
+const TH=['auto','light','dark'],THI=['◐','☀️','🌙'];
+let thi=Math.max(0,TH.indexOf(store.get('ms-theme')));
+function applyTh(){const d=document.documentElement;if(TH[thi]==='auto')d.removeAttribute('data-theme');else d.dataset.theme=TH[thi];$('#th').textContent=THI[thi];theme()}
+$('#th').onclick=()=>{thi=(thi+1)%3;store.set('ms-theme',TH[thi]);vib(8);applyTh()};
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden)clearInterval(tmr);
+  else if(G&&G.started&&!G.over){clearInterval(tmr);tmr=setInterval(tick,500)}
+});
+applyTh();
+
+newGame();
+new ResizeObserver(()=>G&&fit()).observe(bw);
+</script>
+</body>
+</html>

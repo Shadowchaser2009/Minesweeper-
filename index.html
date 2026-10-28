@@ -112,6 +112,34 @@ footer{padding:8px 12px 10px}
 .seg button{padding:12px 8px}
 #zm{width:auto;min-width:52px;height:48px;padding:0 12px;font-size:16px;font-weight:700;border-radius:16px}
 #bw{padding:6px}
+#pg{height:3px;background:var(--ln);flex:none}
+#pg i{display:block;height:100%;width:0;background:var(--ac);border-radius:0 3px 3px 0;transition:width .35s ease}
+.stat.neg{color:#ff6b6f}
+.stat svg{opacity:.9}
+.c.f{background:color-mix(in srgb,var(--ch) 86%,var(--dg))}
+.c{border-radius:calc(var(--cs)*var(--rad,.26))}
+:root[data-skin="flat"]{--rad:.12}
+:root[data-skin="flat"] .c{box-shadow:none}
+:root[data-skin="round"]{--rad:.5}
+:root[data-skin="ocean"] .c:not(.r):not(.f){background:color-mix(in srgb,var(--ch) 68%,#2f7df6)}
+:root[data-skin="forest"] .c:not(.r):not(.f){background:color-mix(in srgb,var(--ch) 68%,#22a35a)}
+:root[data-acc="green"]{--ac:#138a4a}
+:root[data-acc="orange"]{--ac:#d9480f}
+:root[data-acc="pink"]{--ac:#c2255c}
+:root[data-acc="purple"]{--ac:#6741d9}
+:root[data-anim="off"] *{animation:none!important;transition:none!important}
+#sv{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s}
+.sheet{background:var(--sf);color:var(--tx);width:100%;max-width:480px;max-height:86%;overflow:auto;border-radius:24px 24px 0 0;border:1px solid var(--ln);padding:0 18px calc(18px + env(safe-area-inset-bottom,0px));animation:up .3s cubic-bezier(.2,1,.4,1)}
+@keyframes up{from{transform:translateY(40%);opacity:0}}
+.sh{display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--sf);padding:14px 0 4px}
+.sh h3{margin:0;font-size:20px}
+.sh button{border:0;background:var(--bg);color:var(--tx);width:34px;height:34px;border-radius:50%;font-size:15px}
+.sheet label{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mu);margin:16px 0 8px}
+.opt{display:flex;flex-wrap:wrap;gap:6px}
+.opt button{flex:1 1 auto;border:1px solid var(--ln);background:var(--bg);color:var(--tx);padding:10px 12px;border-radius:12px;font-size:14px;font-weight:600}
+.opt button.sel{background:var(--ac);border-color:transparent;color:#fff}
+.dots button{flex:none;width:38px;height:38px;border-radius:50%;background:var(--d);border:0;padding:0}
+.dots button.sel{background:var(--d);box-shadow:0 0 0 3px var(--sf),0 0 0 5px var(--d)}
 </style>
 </head>
 <body>
@@ -127,11 +155,12 @@ footer{padding:8px 12px 10px}
     <button data-l="e">Expert</button>
   </div><button id="th" aria-label="Theme">◐</button></div>
   <div class="st">
-    <div class="stat" title="Mines left"><svg><use href="#mine"/></svg><b id="mc">010</b></div>
+    <div class="stat" title="Mines left"><svg><use href="#flag"/></svg><b id="mc">010</b></div>
     <button id="face" aria-label="Restart game">🙂</button>
     <div class="stat" title="Time"><svg><use href="#clk"/></svg><b id="tm">000</b></div>
   </div>
 </header>
+<div id="pg"><i></i></div>
 <div id="ban"><span id="bt"></span><button id="inst" class="on" hidden>Install</button><button id="x" aria-label="Dismiss">✕</button></div>
 <main id="bw"><div id="board" aria-label="Minesweeper board"></div></main>
 <footer>
@@ -141,6 +170,17 @@ footer{padding:8px 12px 10px}
   </div>
   <button id="zm" hidden aria-label="Zoom in or out">🔍</button>
 </footer>
+<div id="sv" hidden><div class="sheet" role="dialog" aria-modal="true" aria-label="Settings">
+<div class="sh"><h3>Settings</h3><button id="sx" aria-label="Close">✕</button></div>
+<label>Theme</label><div class="opt" data-k="th"><button data-v="auto">Auto</button><button data-v="light">Light</button><button data-v="dark">OLED dark</button></div>
+<label>Accent colour</label><div class="opt dots" data-k="acc"><button data-v="blue" style="--d:#3d6bff" aria-label="Blue"></button><button data-v="green" style="--d:#138a4a" aria-label="Green"></button><button data-v="orange" style="--d:#d9480f" aria-label="Orange"></button><button data-v="pink" style="--d:#c2255c" aria-label="Pink"></button><button data-v="purple" style="--d:#6741d9" aria-label="Purple"></button></div>
+<label>Board style</label><div class="opt" data-k="skin"><button data-v="soft">Soft</button><button data-v="flat">Flat</button><button data-v="round">Round</button><button data-v="ocean">Ocean</button><button data-v="forest">Forest</button></div>
+<label>Vibration</label><div class="opt" data-k="vib"><button data-v="0">Off</button><button data-v="1">Light</button><button data-v="2">Medium</button><button data-v="3">Strong</button></div>
+<label>Long-press speed</label><div class="opt" data-k="lp"><button data-v="250">Fast</button><button data-v="380">Normal</button><button data-v="550">Slow</button></div>
+<label>Tap a number to clear around it</label><div class="opt" data-k="chord"><button data-v="on">On</button><button data-v="off">Off</button></div>
+<label>Animations</label><div class="opt" data-k="anim"><button data-v="on">On</button><button data-v="off">Off (saves battery)</button></div>
+<button class="ghost" id="rb">Reset best times</button>
+</div></div>
 <div id="ov" hidden>
   <div class="card" role="dialog" aria-modal="true">
     <div class="big" id="mi"></div>
@@ -162,7 +202,8 @@ const LV={b:{r:9,c:9,m:10,n:'Beginner'},i:{r:16,c:16,m:40,n:'Intermediate'},e:{r
 const FLAG='<svg><use href="#flag"/></svg>',MINE='<svg><use href="#mine"/></svg>';
 let lv='b',mode='reveal',G,tmr,pt,lastPT,dp;
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
-const vib=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
+const VM=[0,.6,1,1.8];
+const vib=p=>{try{const m=VM[S.vib|0];if(!m||!navigator.vibrate)return;navigator.vibrate(Array.isArray(p)?p.map(x=>Math.round(x*m)):Math.round(p*m))}catch(e){}};
 
 /* ---------- PWA: theme colour, dynamic icons, inline manifest ---------- */
 const theme=()=>{$('#tc').content=getComputedStyle(document.documentElement).getPropertyValue('--bar').trim()};
@@ -209,7 +250,7 @@ function newGame(){
   const f=document.createDocumentFragment();
   for(let i=0;i<N;i++){const e=document.createElement('div');e.className='c';e.dataset.i=i;G.el.push(e);f.appendChild(e)}
   board.appendChild(f);bw.scrollTo(0,0);
-  $('#face').textContent='🙂';$('#zm').hidden=lv==='b';zoom=lv==='b'?0:(+store.get('ms-z-'+lv)||0);zlab();tick();upd();fit();
+  $('#face').textContent='🙂';$('#zm').hidden=lv==='b';zoom=lv==='b'?0:(+store.get('ms-z-'+lv)||0);zlab();tick();upd();prog();fit();
 }
 let zoom=0,T=false;
 const ZF=[1,1.7,2.4];
@@ -237,8 +278,9 @@ function tick(){
   G.t=G.started?Math.min(999,Math.floor((Date.now()-G.t0)/1000)):0;
   $('#tm').textContent=String(G.t).padStart(3,'0');
 }
+const prog=()=>{$('#pg i').style.width=(G.rev/(G.N-G.m)*100)+'%'};
 function upd(){
-  const v=G.m-G.flags;
+  const v=G.m-G.flags;$('#mc').parentNode.classList.toggle('neg',v<0);
   $('#mc').textContent=(v<0?'-':'')+String(Math.abs(v)).padStart(v<0?2:3,'0');
 }
 function place(f){
@@ -263,7 +305,7 @@ function reveal(i){
     G.st[k]=1;G.rev++;draw(k);
     if(!G.adj[k])for(const j of nb(k))if(!G.st[j])stack.push(j);
   }
-  vib(8);
+  vib(8);prog();
   if(G.rev===G.N-G.m)win();
 }
 function flag(i){
@@ -279,7 +321,7 @@ function chord(i){
 }
 function act(i,alt){
   if(G.over)return;
-  if(G.st[i]===1)return chord(i);
+  if(G.st[i]===1)return S.chord==='on'?chord(i):0;
   if((mode==='flag')!==alt)flag(i);else if(G.st[i]!==2)reveal(i);
 }
 function lose(i){
@@ -317,7 +359,7 @@ board.addEventListener('pointerdown',e=>{
   if(e.button>0)return;
   const el=e.target.closest('.c');if(!el)return;
   const p=pt={i:+el.dataset.i,x:e.clientX,y:e.clientY,long:false};
-  p.timer=setTimeout(()=>{if(pt===p){p.long=true;vib(25);act(p.i,true)}},380);
+  p.timer=setTimeout(()=>{if(pt===p){p.long=true;vib(25);act(p.i,true)}},+S.lp);
 });
 board.addEventListener('pointermove',e=>{if(pt&&Math.hypot(e.clientX-pt.x,e.clientY-pt.y)>10)cancelPt()});
 board.addEventListener('pointerup',e=>{
@@ -345,14 +387,28 @@ $('#again').onclick=newGame;
 $('#close').onclick=()=>{ov.hidden=true};
 $('#zm').onclick=()=>setZoom((zoom+1)%3);
 const TH=['auto','light','dark'],THI=['◐','☀️','🌙'];
-let thi=Math.max(0,TH.indexOf(store.get('ms-theme')));
-function applyTh(){const d=document.documentElement;if(TH[thi]==='auto')d.removeAttribute('data-theme');else d.dataset.theme=TH[thi];$('#th').textContent=THI[thi];theme()}
-$('#th').onclick=()=>{thi=(thi+1)%3;store.set('ms-theme',TH[thi]);vib(8);applyTh()};
+const DEF={th:'auto',acc:'blue',skin:'soft',vib:'2',lp:'380',chord:'on',anim:'on'};
+let S;
+try{S=Object.assign({},DEF,JSON.parse(store.get('ms-set')||'{}'))}catch(e){S=Object.assign({},DEF)}
+const GEAR='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>';
+function applySet(){
+  const d=document.documentElement;
+  if(S.th==='auto')d.removeAttribute('data-theme');else d.dataset.theme=S.th;
+  d.dataset.acc=S.acc;d.dataset.skin=S.skin;d.dataset.anim=S.anim;
+  $$('#sv .opt').forEach(o=>o.querySelectorAll('button').forEach(b=>b.classList.toggle('sel',b.dataset.v===S[o.dataset.k])));
+  theme();
+}
+$('#th').innerHTML=GEAR;
+$('#th').onclick=()=>{$('#sv').hidden=false;vib(8)};
+$('#sx').onclick=()=>{$('#sv').hidden=true};
+$('#sv').addEventListener('click',e=>{if(e.target.id==='sv')e.target.hidden=true});
+$$('#sv .opt button').forEach(b=>b.onclick=()=>{S[b.parentNode.dataset.k]=b.dataset.v;store.set('ms-set',JSON.stringify(S));applySet();vib(20)});
+$('#rb').onclick=()=>{['b','i','e'].forEach(k=>store.set('ms-best-'+k,''));vib(20);$('#rb').textContent='Best times cleared'};
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden)clearInterval(tmr);
   else if(G&&G.started&&!G.over){clearInterval(tmr);tmr=setInterval(tick,500)}
 });
-applyTh();
+applySet();
 
 newGame();
 new ResizeObserver(()=>G&&fit()).observe(bw);
